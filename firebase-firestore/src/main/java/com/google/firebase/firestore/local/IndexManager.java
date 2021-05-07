@@ -14,7 +14,12 @@
 
 package com.google.firebase.firestore.local;
 
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.model.Document;
+import com.google.firebase.firestore.model.DocumentKey;
+import com.google.firebase.firestore.model.FieldPath;
 import com.google.firebase.firestore.model.ResourcePath;
+import com.google.firestore.v1.Cursor;
 import java.util.List;
 
 /**
@@ -24,6 +29,13 @@ import java.util.List;
  * Collection Group queries.
  */
 public interface IndexManager {
+  class IndexComponent {
+    FieldPath fieldPath;
+    Query.Direction direction;
+    Cursor startAt;
+    Cursor endAt;
+  }
+
   /**
    * Creates an index entry mapping the collectionId (last segment of the path) to the parent path
    * (either the containing document location or the empty path for root-level collections). Index
@@ -39,4 +51,11 @@ public interface IndexManager {
    * being either a document location or the empty path for a root-level collection).
    */
   List<ResourcePath> getCollectionParents(String collectionId);
+
+  void addDocument(Document document);
+
+  void enableIndex(ResourcePath collectionPath, List<IndexComponent> filters);
+
+  Iterable<DocumentKey> getDocumentsMatchingConstraints(
+      ResourcePath collectionPath, List<IndexComponent> constrains);
 }

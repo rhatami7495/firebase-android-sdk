@@ -16,12 +16,20 @@ package com.google.firebase.firestore.local;
 
 import static com.google.firebase.firestore.util.Assert.hardAssert;
 
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.auth.User;
+import com.google.firebase.firestore.model.Document;
+import com.google.firebase.firestore.model.DocumentKey;
 import com.google.firebase.firestore.model.ResourcePath;
+import com.google.firebase.firestore.util.OrderedCode;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 /** A persisted implementation of IndexManager. */
 final class SQLiteIndexManager implements IndexManager {
+  public static final Charset UTF_8 = Charset.forName("UTF-8");
+  private static final byte[] SEPARATOR = new byte[] {0};
   /**
    * An in-memory copy of the index entries we've already written since the SDK launched. Used to
    * avoid re-writing the same entry repeatedly.
@@ -33,9 +41,11 @@ final class SQLiteIndexManager implements IndexManager {
       new MemoryIndexManager.MemoryCollectionParentIndex();
 
   private final SQLitePersistence db;
+  private User user;
 
-  SQLiteIndexManager(SQLitePersistence persistence) {
+  SQLiteIndexManager(SQLitePersistence persistence, User user) {
     db = persistence;
+    this.user = user;
   }
 
   @Override
@@ -64,5 +74,39 @@ final class SQLiteIndexManager implements IndexManager {
               parentPaths.add(EncodedPath.decodeResourcePath(row.getString(0)));
             });
     return parentPaths;
+  }
+
+  @Override
+  public void addDocument(Document document) {}
+
+  @Override
+  public void enableIndex(ResourcePath collectionPath, List<IndexComponent> filters) {
+    db.execute(
+        "INSERT OR IGNORE index_configuration ("
+            + "uid TEXT, "
+            + "parent_path TEXT, "
+            + "field_paths BLOB, " // field path, direction pairs
+            + "index_id INTEGER) VALUES(?, ?, ?, (SELECT MAX(index_id) + 1 FROM index_configuration)",
+        user.getUid(),
+        collectionPath.canonicalString(),
+        encodeFilterPath(filters));
+  }
+
+  private byte[] encodeFilterPath(List<IndexComponent> path) {
+    OrderedCode orderedCode = new OrderedCode();
+    for (IndexComponent component : path) {
+      orderedCode.writeBytes(component.fieldPath.canonicalString().getBytes(UTF_8));
+      orderedCode.writeBytes(SEPARATOR);
+      orderedCode.writeBytes(
+          new byte[] {component.direction.equals(Query.Direction.ASCENDING) ? (byte) 0 : (byte) 1});
+      orderedCode.writeBytes(SEPARATOR);
+    }
+    return orderedCode.getEncodedBytes();
+  }
+
+  @Override
+  public Iterable<DocumentKey> getDocumentsMatchingConstraints(
+      ResourcePath collectionPath, List<IndexComponent> constrains) {
+    return null;
   }
 }
