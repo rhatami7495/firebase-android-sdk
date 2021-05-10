@@ -347,11 +347,11 @@ class SQLiteSchema {
                   + "PRIMARY KEY (uid, parent_paths, field_paths))");
 
           db.execSQL(
-                  "CREATE TABLE field_index ("
-                          + "index_id INTEGER, "
-                          + "index_value BLOB, " // field value pairs
-                          + "document_id TEXT, "
-                          + "PRIMARY KEY (index_id, index_value,  document_id))");
+              "CREATE TABLE field_index ("
+                  + "index_id INTEGER, "
+                  + "index_value BLOB, " // field value pairs
+                  + "document_id TEXT, "
+                  + "PRIMARY KEY (index_id, index_value,  document_id))");
         });
   }
 

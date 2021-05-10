@@ -19,31 +19,17 @@ import com.google.protobuf.ByteString;
 /** An index value encoder. */
 public abstract class DirectionalIndexByteEncoder {
 
-    private boolean encodesEntityRef = false;
+  public abstract void writeBytes(ByteString val);
 
-    public final boolean encodesEntityRef() {
-        return encodesEntityRef;
-    }
+  public abstract void writeString(String val);
 
-    public final void recordEncodesEntityRef() {
-        encodesEntityRef = true;
-    }
+  public abstract void writeLong(long val);
 
-    public abstract void writeBytes(byte[] val);
+  public abstract void writeDouble(double val);
 
-    public abstract void writeBytes(ByteString val);
+  /** Writes a double such that it is comparable with doubles and longs together. */
+  public abstract void writeNumber(double comparableNumberAsDouble);
 
-    public abstract void writeString(String val);
-
-    public abstract void writeLong(long val);
-
-    public abstract void writeLongDecreasing(long val);
-
-    public abstract void writeDouble(double val);
-
-    /** Writes a double such that it is comparable with doubles and longs together. */
-    public abstract void writeNumber(double comparableNumberAsDouble);
-
-    /** Writes a long such that it is comparable with doubles and longs together. */
-    public abstract void writeNumber(long comparableNumberAsLong);
+  /** Writes a long such that it is comparable with doubles and longs together. */
+  public abstract void writeNumber(long comparableNumberAsLong);
 }

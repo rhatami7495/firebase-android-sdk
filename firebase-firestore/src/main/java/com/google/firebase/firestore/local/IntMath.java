@@ -14,14 +14,11 @@
 
 package com.google.firebase.firestore.local;
 
-
-import com.google.android.gms.common.util.VisibleForTesting;
-
-import java.math.RoundingMode;
-
 import static java.lang.Math.abs;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.math.RoundingMode.HALF_UP;
+
+import java.math.RoundingMode;
 
 /**
  * A class for arithmetic on values of type {@code int}. Where possible, methods are defined and
@@ -39,67 +36,67 @@ import static java.math.RoundingMode.HALF_UP;
  */
 public final class IntMath {
 
-    /**
-     * Returns the result of dividing {@code p} by {@code q}, rounding using the specified {@code
-     * RoundingMode}.
-     *
-     * @throws ArithmeticException if {@code q == 0}, or if {@code mode == UNNECESSARY} and {@code a}
-     *     is not an integer multiple of {@code b}
-     */
-    @SuppressWarnings("fallthrough")
-    public static int divide(int p, int q, RoundingMode mode) {
-        if (q == 0) {
-            throw new ArithmeticException("/ by zero"); // for GWT
-        }
-        int div = p / q;
-        int rem = p - q * div; // equal to p % q
+  /**
+   * Returns the result of dividing {@code p} by {@code q}, rounding using the specified {@code
+   * RoundingMode}.
+   *
+   * @throws ArithmeticException if {@code q == 0}, or if {@code mode == UNNECESSARY} and {@code a}
+   *     is not an integer multiple of {@code b}
+   */
+  @SuppressWarnings("fallthrough")
+  public static int divide(int p, int q, RoundingMode mode) {
+    if (q == 0) {
+      throw new ArithmeticException("/ by zero"); // for GWT
+    }
+    int div = p / q;
+    int rem = p - q * div; // equal to p % q
 
-        if (rem == 0) {
-            return div;
-        }
-
-        /*
-         * Normal Java division rounds towards 0, consistently with RoundingMode.DOWN. We just have to
-         * deal with the cases where rounding towards 0 is wrong, which typically depends on the sign of
-         * p / q.
-         *
-         * signum is 1 if p and q are both nonnegative or both negative, and -1 otherwise.
-         */
-        int signum = 1 | ((p ^ q) >> (Integer.SIZE - 1));
-        boolean increment;
-        switch (mode) {
-            case UNNECESSARY:
-                // fall through
-            case DOWN:
-                increment = false;
-                break;
-            case UP:
-                increment = true;
-                break;
-            case CEILING:
-                increment = signum > 0;
-                break;
-            case FLOOR:
-                increment = signum < 0;
-                break;
-            case HALF_EVEN:
-            case HALF_DOWN:
-            case HALF_UP:
-                int absRem = abs(rem);
-                int cmpRemToHalfDivisor = absRem - (abs(q) - absRem);
-                // subtracting two nonnegative ints can't overflow
-                // cmpRemToHalfDivisor has the same sign as compare(abs(rem), abs(q) / 2).
-                if (cmpRemToHalfDivisor == 0) { // exactly on the half mark
-                    increment = (mode == HALF_UP || (mode == HALF_EVEN & (div & 1) != 0));
-                } else {
-                    increment = cmpRemToHalfDivisor > 0; // closer to the UP value
-                }
-                break;
-            default:
-                throw new AssertionError();
-        }
-        return increment ? div + signum : div;
+    if (rem == 0) {
+      return div;
     }
 
-    private IntMath() {}
+    /*
+     * Normal Java division rounds towards 0, consistently with RoundingMode.DOWN. We just have to
+     * deal with the cases where rounding towards 0 is wrong, which typically depends on the sign of
+     * p / q.
+     *
+     * signum is 1 if p and q are both nonnegative or both negative, and -1 otherwise.
+     */
+    int signum = 1 | ((p ^ q) >> (Integer.SIZE - 1));
+    boolean increment;
+    switch (mode) {
+      case UNNECESSARY:
+        // fall through
+      case DOWN:
+        increment = false;
+        break;
+      case UP:
+        increment = true;
+        break;
+      case CEILING:
+        increment = signum > 0;
+        break;
+      case FLOOR:
+        increment = signum < 0;
+        break;
+      case HALF_EVEN:
+      case HALF_DOWN:
+      case HALF_UP:
+        int absRem = abs(rem);
+        int cmpRemToHalfDivisor = absRem - (abs(q) - absRem);
+        // subtracting two nonnegative ints can't overflow
+        // cmpRemToHalfDivisor has the same sign as compare(abs(rem), abs(q) / 2).
+        if (cmpRemToHalfDivisor == 0) { // exactly on the half mark
+          increment = (mode == HALF_UP || (mode == HALF_EVEN & (div & 1) != 0));
+        } else {
+          increment = cmpRemToHalfDivisor > 0; // closer to the UP value
+        }
+        break;
+      default:
+        throw new AssertionError();
+    }
+    return increment ? div + signum : div;
+  }
+
+  private IntMath() {}
 }

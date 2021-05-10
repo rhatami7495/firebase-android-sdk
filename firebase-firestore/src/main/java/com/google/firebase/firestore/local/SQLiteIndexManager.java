@@ -14,18 +14,15 @@
 
 package com.google.firebase.firestore.local;
 
-import androidx.annotation.Nullable;
-
 import static com.google.firebase.firestore.util.Assert.hardAssert;
 
-import com.google.firebase.firestore.Query;
+import androidx.annotation.Nullable;
 import com.google.firebase.firestore.auth.User;
+import com.google.firebase.firestore.core.OrderBy;
 import com.google.firebase.firestore.model.Document;
 import com.google.firebase.firestore.model.DocumentKey;
 import com.google.firebase.firestore.model.ResourcePath;
-import com.google.firebase.firestore.util.OrderedCode;
-import com.google.firestore.v1.Cursor;
-
+import com.google.firestore.v1.Value;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +30,6 @@ import java.util.List;
 /** A persisted implementation of IndexManager. */
 final class SQLiteIndexManager implements IndexManager {
   public static final Charset UTF_8 = Charset.forName("UTF-8");
-  private static final byte[] SEPARATOR = new byte[] {0};
   /**
    * An in-memory copy of the index entries we've already written since the SDK launched. Used to
    * avoid re-writing the same entry repeatedly.
@@ -99,42 +95,39 @@ final class SQLiteIndexManager implements IndexManager {
   @Override
   @Nullable
   public Integer getIndexId(ResourcePath collectionPath, List<IndexComponent> filters) {
-    return db.query("SELECT index_id FROM index_configuration WHERE parent_path = ? AND field_paths = ?")
-            .binding(collectionPath.canonicalString(), encodeFilterPath(filters))
-            .firstValue(
-                    row ->
-                     row.getInt(0)
-                    );
+    return db.query(
+            "SELECT index_id FROM index_configuration WHERE parent_path = ? AND field_paths = ?")
+        .binding(collectionPath.canonicalString(), encodeFilterPath(filters))
+        .firstValue(row -> row.getInt(0));
   }
 
   private byte[] encodeFilterPath(List<IndexComponent> path) {
-    OrderedCode orderedCode = new OrderedCode();
+    OrderedCodeWriter orderedCode = new OrderedCodeWriter();
     for (IndexComponent component : path) {
-      orderedCode.writeBytes(component.fieldPath.canonicalString().getBytes(UTF_8));
-      orderedCode.writeBytes(SEPARATOR);
-      orderedCode.writeBytes(
-          new byte[] {component.direction.equals(Query.Direction.ASCENDING) ? (byte) 0 : (byte) 1});
-      orderedCode.writeBytes(SEPARATOR);
+      orderedCode.writeUtf8Ascending(component.fieldPath.canonicalString());
+      orderedCode.writeNumberAscending(
+          component.direction.equals(OrderBy.Direction.ASCENDING) ? 0 : 1);
     }
-    return orderedCode.getEncodedBytes();
+    return orderedCode.encodedBytes();
   }
 
   @Override
   public Iterable<DocumentKey> getDocumentsMatchingConstraints(
-          ResourcePath parentPath,List<IndexComponent> filters,
-          int indexId, List<Cursor> values) {
+      ResourcePath parentPath, List<IndexComponent> filters, int indexId, List<Value> values) {
 
     ArrayList<DocumentKey> documents = new ArrayList<>();
-   db.query("SELECT document_id from field_index WHERE index_id = ? AND index_value = ?").binding(indexId, encodeValues(filters,values)).forEach(
-            row -> {
-              documents.add(DocumentKey.fromPath(parentPath.append(row.getString(0))));
-            });
-   return documents;
+    db.query("SELECT document_id from field_index WHERE index_id = ? AND index_value = ?")
+        .binding(indexId, encodeValues(filters, values))
+        .forEach(row -> documents.add(DocumentKey.fromPath(parentPath.append(row.getString(0)))));
+    return documents;
   }
 
-  private byte[] encodeValues(List<IndexComponent> filters, List<Cursor> values) {
-    for (int i = 0; i < filters.size(); ++i){
-      FirestoreIndexValueWriter.INSTANCE.writeIndexValue();
+  private byte[] encodeValues(List<IndexComponent> filters, List<Value> values) {
+    IndexByteEncoder indexByteEncoder = new IndexByteEncoder();
+    for (int i = 0; i < filters.size(); ++i) {
+      FirestoreIndexValueWriter.INSTANCE.writeIndexValue(
+          values.get(i), indexByteEncoder.forDirection(filters.get(i).direction));
     }
+    return indexByteEncoder.getEncodedBytes();
   }
 }
