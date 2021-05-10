@@ -15,7 +15,11 @@ package com.google.firebase.firestore.local;
 
 import static com.google.firebase.firestore.util.Assert.hardAssert;
 
+import androidx.annotation.Nullable;
+import com.google.firebase.firestore.model.Document;
+import com.google.firebase.firestore.model.DocumentKey;
 import com.google.firebase.firestore.model.ResourcePath;
+import com.google.firestore.v1.Value;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,6 +39,24 @@ class MemoryIndexManager implements IndexManager {
   @Override
   public List<ResourcePath> getCollectionParents(String collectionId) {
     return collectionParentsIndex.getEntries(collectionId);
+  }
+
+  @Override
+  public void addDocument(Document document) {}
+
+  @Override
+  public void enableIndex(ResourcePath collectionPath, List<IndexComponent> filters) {}
+
+  @Nullable
+  @Override
+  public Integer getIndexId(ResourcePath collectionPath, List<IndexComponent> filters) {
+    return null;
+  }
+
+  @Override
+  public Iterable<DocumentKey> getDocumentsMatchingConstraints(
+      ResourcePath parentPath, List<IndexComponent> filters, int indexId, List<Value> values) {
+    return null;
   }
 
   /**

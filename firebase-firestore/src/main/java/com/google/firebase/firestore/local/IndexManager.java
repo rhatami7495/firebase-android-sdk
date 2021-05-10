@@ -31,6 +31,11 @@ import java.util.List;
  */
 public interface IndexManager {
   class IndexComponent {
+    public IndexComponent(FieldPath fieldPath, OrderBy.Direction direction) {
+      this.fieldPath = fieldPath;
+      this.direction = direction;
+    }
+
     FieldPath fieldPath;
     OrderBy.Direction direction;
   }

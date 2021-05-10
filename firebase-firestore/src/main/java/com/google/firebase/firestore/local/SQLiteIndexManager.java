@@ -21,6 +21,7 @@ import com.google.firebase.firestore.auth.User;
 import com.google.firebase.firestore.core.OrderBy;
 import com.google.firebase.firestore.model.Document;
 import com.google.firebase.firestore.model.DocumentKey;
+import com.google.firebase.firestore.model.FieldPath;
 import com.google.firebase.firestore.model.ResourcePath;
 import com.google.firestore.v1.Value;
 import java.nio.charset.Charset;
@@ -77,16 +78,40 @@ final class SQLiteIndexManager implements IndexManager {
   }
 
   @Override
-  public void addDocument(Document document) {}
+  public void addDocument(Document document) {
+    db.query("SELECT index_id, field_paths FROM index_configuration WHERE parent_path = ?")
+        .binding(document.getKey().getPath().popLast().canonicalString())
+        .forEach(
+            row -> {
+              int indexId = row.getInt(0);
+              List<IndexComponent> components = decodeFilterPath(row.getBlob(1));
+
+              List<Value> values = new ArrayList<>();
+              for (IndexComponent component : components) {
+                Value field = document.getField(component.fieldPath);
+                if (field == null) return;
+                values.add(field);
+              }
+
+              db.execute(
+                  "INSERT OR IGNORE index_configuration ("
+                      + "index_id, "
+                      + "index_value, "
+                      + "document_id ) VALUES(?, ?, ?)",
+                  indexId,
+                  encodeValues(components, values),
+                  document.getKey().getPath().getLastSegment());
+            });
+  }
 
   @Override
   public void enableIndex(ResourcePath collectionPath, List<IndexComponent> filters) {
     db.execute(
         "INSERT OR IGNORE index_configuration ("
-            + "uid TEXT, "
-            + "parent_path TEXT, "
-            + "field_paths BLOB, " // field path, direction pairs
-            + "index_id INTEGER) VALUES(?, ?, ?, (SELECT MAX(index_id) + 1 FROM index_configuration)",
+            + "uid, "
+            + "parent_path, "
+            + "field_paths, " // field path, direction pairs
+            + "index_id) VALUES(?, ?, ?, (SELECT MAX(index_id) + 1 FROM index_configuration)",
         user.getUid(),
         collectionPath.canonicalString(),
         encodeFilterPath(filters));
@@ -105,10 +130,24 @@ final class SQLiteIndexManager implements IndexManager {
     OrderedCodeWriter orderedCode = new OrderedCodeWriter();
     for (IndexComponent component : path) {
       orderedCode.writeUtf8Ascending(component.fieldPath.canonicalString());
-      orderedCode.writeNumberAscending(
+      orderedCode.writeUnsignedLongAscending(
           component.direction.equals(OrderBy.Direction.ASCENDING) ? 0 : 1);
     }
     return orderedCode.encodedBytes();
+  }
+
+  private List<IndexComponent> decodeFilterPath(byte[] bytes) {
+    List<IndexComponent> components = new ArrayList<>();
+    OrderedCodeReader orderedCodeReader = new OrderedCodeReader(bytes);
+    while (orderedCodeReader.hasRemainingBytes()) {
+      long direction = orderedCodeReader.readUnsignedLongAscending();
+      String fieldPath = orderedCodeReader.readUtf8Ascending();
+      components.add(
+          new IndexComponent(
+              FieldPath.fromServerFormat(fieldPath),
+              direction == 0 ? OrderBy.Direction.ASCENDING : OrderBy.Direction.DESCENDING));
+    }
+    return components;
   }
 
   @Override
