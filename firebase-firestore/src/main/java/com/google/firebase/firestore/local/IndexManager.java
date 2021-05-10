@@ -14,12 +14,16 @@
 
 package com.google.firebase.firestore.local;
 
+import androidx.annotation.Nullable;
+
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.model.Document;
 import com.google.firebase.firestore.model.DocumentKey;
 import com.google.firebase.firestore.model.FieldPath;
 import com.google.firebase.firestore.model.ResourcePath;
 import com.google.firestore.v1.Cursor;
+import com.google.firestore.v1.Value;
+
 import java.util.List;
 
 /**
@@ -32,8 +36,6 @@ public interface IndexManager {
   class IndexComponent {
     FieldPath fieldPath;
     Query.Direction direction;
-    Cursor startAt;
-    Cursor endAt;
   }
 
   /**
@@ -56,6 +58,10 @@ public interface IndexManager {
 
   void enableIndex(ResourcePath collectionPath, List<IndexComponent> filters);
 
+  @Nullable
+  public Integer  getIndexId(ResourcePath collectionPath, List<IndexComponent> filters);
+
   Iterable<DocumentKey> getDocumentsMatchingConstraints(
-      ResourcePath collectionPath, List<IndexComponent> constrains);
+          ResourcePath parentPath,List<IndexComponent> filters,
+          int indexId, List<Cursor> values);
 }

@@ -339,20 +339,19 @@ class SQLiteSchema {
         new String[] {"field_index", "index_configuration"},
         () -> {
           db.execSQL(
-              "CREATE TABLE field_index ("
-                  + "uid TEXT, "
-                  + "index_id INTEGER, "
-                  + "index_value BLOB, " // field value pairs
-                  + "document_id TEXT, "
-                  + "PRIMARY KEY (uid, index_id, index_value,  document_id))");
-
-          db.execSQL(
               "CREATE TABLE index_configuration ("
                   + "uid TEXT, "
                   + "parent_path TEXT, "
                   + "field_paths BLOB, " // field path, direction pairs
                   + "index_id INTEGER, "
                   + "PRIMARY KEY (uid, parent_paths, field_paths))");
+
+          db.execSQL(
+                  "CREATE TABLE field_index ("
+                          + "index_id INTEGER, "
+                          + "index_value BLOB, " // field value pairs
+                          + "document_id TEXT, "
+                          + "PRIMARY KEY (index_id, index_value,  document_id))");
         });
   }
 
