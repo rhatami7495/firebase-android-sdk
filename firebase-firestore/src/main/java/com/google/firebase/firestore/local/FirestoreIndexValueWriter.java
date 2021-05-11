@@ -82,7 +82,8 @@ public class FirestoreIndexValueWriter {
         break;
       case INTEGER_VALUE:
         writeValueTypeLabel(encoder, INDEX_TYPE_NUMBER);
-        encoder.writeLong(indexValue.getIntegerValue());
+        // Double and long sort the same
+        encoder.writeDouble(indexValue.getIntegerValue());
         break;
       case TIMESTAMP_VALUE:
         Timestamp timestamp = indexValue.getTimestampValue();

@@ -93,6 +93,17 @@ public class FirestoreTest {
   }
 
   @Test
+  public void testCanUseIndexForInequalityWithDouble() {
+    CollectionReference collectionReference = testCollection("rooms");
+    collectionReference.getFirestore().enableIndex(collectionReference, "foo", Direction.ASCENDING);
+    collectionReference.add(map("foo", 1));
+    collectionReference.add(map("foo", 2.0));
+    collectionReference.add(map("foo", 3));
+    QuerySnapshot snap = waitFor(collectionReference.whereGreaterThan("foo", 1.0).get());
+    assertEquals(2, snap.size());
+  }
+
+  @Test
   public void testCanUpdateAnExistingDocument() {
     DocumentReference documentReference = testCollection("rooms").document("eros");
     Map<String, Object> initialValue =

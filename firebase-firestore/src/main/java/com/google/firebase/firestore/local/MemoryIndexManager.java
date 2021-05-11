@@ -13,14 +13,12 @@
 // limitations under the License.
 package com.google.firebase.firestore.local;
 
-import androidx.annotation.Nullable;
-
 import static com.google.firebase.firestore.util.Assert.hardAssert;
 
+import com.google.firebase.firestore.core.Query;
 import com.google.firebase.firestore.model.Document;
 import com.google.firebase.firestore.model.DocumentKey;
 import com.google.firebase.firestore.model.ResourcePath;
-import com.google.firestore.v1.Value;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,8 +47,7 @@ class MemoryIndexManager implements IndexManager {
   public void enableIndex(ResourcePath collectionPath, IndexDefinition index) {}
 
   @Override
-  public Iterable<DocumentKey> getDocumentsMatchingQuery(
-          ResourcePath parentPath, IndexDefinition index, @Nullable List<Value> lowerBound, boolean lowerInclusive, @Nullable List<Value> upperBound, boolean upperInclusive) {
+  public Iterable<DocumentKey> getDocumentsMatchingQuery(Query query) {
     return null;
   }
 

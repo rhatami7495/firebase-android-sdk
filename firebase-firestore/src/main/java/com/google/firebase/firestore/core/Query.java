@@ -135,7 +135,7 @@ public final class Query {
     List<Value> unspecifiedComponents = new ArrayList<>();
     for (Filter filter : filters) {
       Value lowerBound = filter.getLowerBound();
-      if (lowerBound==null)return null;
+      if (lowerBound == null) return null;
       unspecifiedComponents.add(lowerBound);
     }
     return unspecifiedComponents;
@@ -150,12 +150,11 @@ public final class Query {
     return true;
   }
 
-
   public @Nullable List<Value> getUpperBound() {
     List<Value> unspecifiedComponents = new ArrayList<>();
     for (Filter filter : filters) {
       Value upperBound = filter.getUpperBound();
-      if (upperBound==null)return null;
+      if (upperBound == null) return null;
       unspecifiedComponents.add(upperBound);
     }
     return unspecifiedComponents;
@@ -169,13 +168,12 @@ public final class Query {
     return true;
   }
 
-
   private void expandIndexComponents(
       List<IndexDefinition> existing, List<IndexComponent> unspecifiedComponents) {
     if (!unspecifiedComponents.isEmpty()) {
       if (existing.isEmpty()) {
-      existing.add(new IndexDefinition());
-    }
+        existing.add(new IndexDefinition());
+      }
       IndexComponent first = unspecifiedComponents.get(0);
       if (!first.getType().equals(IndexComponent.IndexType.ANY)) {
         for (IndexDefinition indexDefinition : existing) {

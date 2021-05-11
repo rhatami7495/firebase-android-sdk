@@ -188,22 +188,14 @@ class LocalDocumentsView {
   /** Queries the remote documents and overlays mutations. */
   private ImmutableSortedMap<DocumentKey, Document> getDocumentsMatchingCollectionQuery(
       Query query, SnapshotVersion sinceReadTime) {
-    Map<DocumentKey, MutableDocument> remoteDocuments = null;
+    Map<DocumentKey, MutableDocument> remoteDocuments;
 
-    List<IndexManager.IndexDefinition> indexComponents = query.getIndexComponents();
-    for (IndexManager.IndexDefinition definition : indexComponents) {
-      Iterable<DocumentKey> documentsMatchingQuery =
-          indexManager.getDocumentsMatchingQuery(
-              query.getPath(), definition, query.getLowerBound(), query.isLowerInclusive(), query.getUpperBound(), query.isUpperInclusive());
-
-      if (documentsMatchingQuery != null) {
-        remoteDocuments = remoteDocumentCache.getAll(documentsMatchingQuery);
-        break;
-      }
-    }
-
-    if (remoteDocuments == null)
+    Iterable<DocumentKey> documentsMatchingQuery = indexManager.getDocumentsMatchingQuery(query);
+    if (documentsMatchingQuery != null) {
+      remoteDocuments = remoteDocumentCache.getAll(documentsMatchingQuery);
+    } else {
       remoteDocuments = remoteDocumentCache.getAllDocumentsMatchingQuery(query, sinceReadTime);
+    }
 
     List<MutationBatch> matchingBatches = mutationQueue.getAllMutationBatchesAffectingQuery(query);
 

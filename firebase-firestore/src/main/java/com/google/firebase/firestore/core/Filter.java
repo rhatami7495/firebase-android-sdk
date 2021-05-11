@@ -22,6 +22,7 @@ import com.google.firestore.v1.Value;
 /** Interface used for all query filters. */
 public abstract class Filter {
   public abstract boolean isLowerInclusive();
+
   public abstract boolean isUpperInclusive();
 
   public enum Operator {
