@@ -38,7 +38,6 @@ import com.google.firebase.firestore.MetadataChanges;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.auth.User;
 import com.google.firebase.firestore.core.DatabaseInfo;
-import com.google.firebase.firestore.local.Persistence;
 import com.google.firebase.firestore.model.DatabaseId;
 import com.google.firebase.firestore.testutil.provider.FirestoreProvider;
 import com.google.firebase.firestore.util.AsyncQueue;
@@ -256,7 +255,7 @@ public class IntegrationTestUtil {
     Logger.setLogLevel(logLevel);
 
     // TODO: Remove this once this is ready to ship.
-    Persistence.INDEXING_SUPPORT_ENABLED = true;
+    //  Persistence.INDEXING_SUPPORT_ENABLED = true;
 
     Context context = ApplicationProvider.getApplicationContext();
     DatabaseId databaseId = DatabaseId.forDatabase(projectId, DatabaseId.DEFAULT_DATABASE_ID);

@@ -14,7 +14,6 @@
 
 package com.google.firebase.firestore.local;
 
-import com.google.firebase.firestore.core.OrderBy;
 import com.google.protobuf.ByteString;
 
 public class IndexByteEncoder {
@@ -101,11 +100,11 @@ public class IndexByteEncoder {
     orderedCode.reset();
   }
 
-  public DirectionalIndexByteEncoder forDirection(OrderBy.Direction direction) {
+  public DirectionalIndexByteEncoder forDirection(IndexManager.IndexComponent.IndexType direction) {
     switch (direction) {
-      case ASCENDING:
+      case ASC:
         return ascendingEncoder;
-      case DESCENDING:
+      case DESC:
         return descendingEncoder;
     }
     throw new IllegalArgumentException("Unexpected direction " + direction);

@@ -72,6 +72,17 @@ public class FirestoreTest {
   }
 
   @Test
+  public void testCanUseIndex() {
+    CollectionReference collectionReference = testCollection("rooms");
+    collectionReference.getFirestore().enableIndex(collectionReference, "foo", Direction.ASCENDING);
+    collectionReference.document("matches").set(map("foo", "bar"));
+    collectionReference.add(map("foo", "baz"));
+    collectionReference.add(map("a", "b"));
+    QuerySnapshot snap = waitFor(collectionReference.whereEqualTo("foo", "bar").get());
+    assertEquals(1, snap.size());
+  }
+
+  @Test
   public void testCanUpdateAnExistingDocument() {
     DocumentReference documentReference = testCollection("rooms").document("eros");
     Map<String, Object> initialValue =

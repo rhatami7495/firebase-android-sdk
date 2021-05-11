@@ -21,8 +21,6 @@ import com.google.firebase.firestore.model.Values;
 import com.google.firebase.firestore.util.Assert;
 import com.google.firestore.v1.Value;
 
-import java.util.List;
-
 /** Represents a sort order for a Firestore Query */
 public class OrderBy {
   /** The direction of the ordering */
@@ -73,9 +71,12 @@ public class OrderBy {
     }
   }
 
-
   public IndexManager.IndexComponent getIndexComponent() {
-    return new IndexManager.IndexComponent(field, direction.equals(Direction.ASCENDING)? IndexManager.IndexComponent.IndexType.ASC: IndexManager.IndexComponent.IndexType.DESC);
+    return new IndexManager.IndexComponent(
+        field,
+        direction.equals(Direction.ASCENDING)
+            ? IndexManager.IndexComponent.IndexType.ASC
+            : IndexManager.IndexComponent.IndexType.DESC);
   }
 
   @Override

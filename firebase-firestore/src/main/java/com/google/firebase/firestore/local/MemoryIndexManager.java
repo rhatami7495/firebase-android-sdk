@@ -15,7 +15,6 @@ package com.google.firebase.firestore.local;
 
 import static com.google.firebase.firestore.util.Assert.hardAssert;
 
-import androidx.annotation.Nullable;
 import com.google.firebase.firestore.model.Document;
 import com.google.firebase.firestore.model.DocumentKey;
 import com.google.firebase.firestore.model.ResourcePath;
@@ -42,20 +41,16 @@ class MemoryIndexManager implements IndexManager {
   }
 
   @Override
-  public void addDocument(Document document) {
-
-  }
+  public void addDocument(Document document) {}
 
   @Override
-  public void enableIndex(ResourcePath collectionPath, IndexDefinition index) {
-
-  }
+  public void enableIndex(ResourcePath collectionPath, IndexDefinition index) {}
 
   @Override
-  public Iterable<DocumentKey> getDocumentsMatchingQuery(ResourcePath parentPath, IndexDefinition index, List<Value> values) {
+  public Iterable<DocumentKey> getDocumentsMatchingQuery(
+      ResourcePath parentPath, IndexDefinition index, List<Value> values) {
     return null;
   }
-
 
   /**
    * Internal implementation of the collection-parent index. Also used for in-memory caching by

@@ -14,14 +14,11 @@
 
 package com.google.firebase.firestore.local;
 
-import androidx.annotation.Nullable;
-import com.google.firebase.firestore.core.OrderBy;
 import com.google.firebase.firestore.model.Document;
 import com.google.firebase.firestore.model.DocumentKey;
 import com.google.firebase.firestore.model.FieldPath;
 import com.google.firebase.firestore.model.ResourcePath;
 import com.google.firestore.v1.Value;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +62,7 @@ public interface IndexManager {
     IndexType type;
   }
 
-  class IndexDefinition extends ArrayList<IndexComponent>{}
+  class IndexDefinition extends ArrayList<IndexComponent> {}
 
   /**
    * Creates an index entry mapping the collectionId (last segment of the path) to the parent path
@@ -85,8 +82,8 @@ public interface IndexManager {
 
   void addDocument(Document document);
 
-  void enableIndex(ResourcePath collectionPath,  IndexDefinition index);
+  void enableIndex(ResourcePath collectionPath, IndexDefinition index);
 
   Iterable<DocumentKey> getDocumentsMatchingQuery(
-      ResourcePath parentPath,  IndexDefinition index, List<Value> values);
+      ResourcePath parentPath, IndexDefinition index, List<Value> values);
 }

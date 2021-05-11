@@ -139,7 +139,7 @@ public class FieldFilter extends Filter {
 
   @Override
   public IndexManager.IndexComponent getIndexComponent() {
-   return new IndexManager.IndexComponent(field, IndexType.ANY);
+    return new IndexManager.IndexComponent(field, IndexType.ANY);
   }
 
   @Override

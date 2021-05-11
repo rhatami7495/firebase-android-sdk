@@ -105,6 +105,7 @@ public final class LocalStore implements BundleCallback {
 
   /** Manages our in-memory or durable persistence. */
   private final Persistence persistence;
+
   private IndexManager indexManager;
 
   /** The set of all mutations that have been sent but not yet been applied to the backend. */
@@ -147,8 +148,7 @@ public final class LocalStore implements BundleCallback {
     mutationQueue = persistence.getMutationQueue(initialUser);
     indexManager = persistence.getIndexManager(initialUser);
     remoteDocuments = persistence.getRemoteDocumentCache();
-    localDocuments =
-        new LocalDocumentsView(remoteDocuments, mutationQueue, indexManager);
+    localDocuments = new LocalDocumentsView(remoteDocuments, mutationQueue, indexManager);
 
     this.queryEngine = queryEngine;
     queryEngine.setLocalDocumentsView(localDocuments);
@@ -179,14 +179,13 @@ public final class LocalStore implements BundleCallback {
     List<MutationBatch> oldBatches = mutationQueue.getAllMutationBatches();
 
     mutationQueue = persistence.getMutationQueue(user);
-    indexManager=persistence.getIndexManager(user);
+    indexManager = persistence.getIndexManager(user);
     startMutationQueue();
 
     List<MutationBatch> newBatches = mutationQueue.getAllMutationBatches();
 
     // Recreate our LocalDocumentsView using the new MutationQueue.
-    localDocuments =
-        new LocalDocumentsView(remoteDocuments, mutationQueue,indexManager);
+    localDocuments = new LocalDocumentsView(remoteDocuments, mutationQueue, indexManager);
     queryEngine.setLocalDocumentsView(localDocuments);
 
     // Union the old/new changed keys.
@@ -703,9 +702,13 @@ public final class LocalStore implements BundleCallback {
   }
 
   public void updateIndexEntries(ImmutableSortedMap<DocumentKey, Document> changes) {
-    for (Entry<DocumentKey, Document> entry: changes) {
+    for (Entry<DocumentKey, Document> entry : changes) {
       indexManager.addDocument(entry.getValue());
     }
+  }
+
+  public void enableIndex(ResourcePath path, IndexManager.IndexDefinition definition) {
+    indexManager.enableIndex(path, definition);
   }
 
   /** Mutable state for the transaction in allocateQuery. */

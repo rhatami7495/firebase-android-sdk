@@ -344,7 +344,7 @@ class SQLiteSchema {
                   + "parent_path TEXT, "
                   + "field_paths BLOB, " // field path, direction pairs
                   + "index_id INTEGER, "
-                  + "PRIMARY KEY (uid, parent_paths, field_paths))");
+                  + "PRIMARY KEY (uid, parent_path, field_paths))");
 
           db.execSQL(
               "CREATE TABLE field_index ("

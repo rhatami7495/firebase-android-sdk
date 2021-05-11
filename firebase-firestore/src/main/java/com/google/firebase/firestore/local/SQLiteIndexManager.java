@@ -16,13 +16,14 @@ package com.google.firebase.firestore.local;
 
 import static com.google.firebase.firestore.util.Assert.hardAssert;
 
+import android.database.Cursor;
 import androidx.annotation.Nullable;
 import com.google.firebase.firestore.auth.User;
-import com.google.firebase.firestore.core.OrderBy;
 import com.google.firebase.firestore.model.Document;
 import com.google.firebase.firestore.model.DocumentKey;
 import com.google.firebase.firestore.model.FieldPath;
 import com.google.firebase.firestore.model.ResourcePath;
+import com.google.firebase.firestore.util.Function;
 import com.google.firestore.v1.Value;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -94,7 +95,7 @@ final class SQLiteIndexManager implements IndexManager {
               }
 
               db.execute(
-                  "INSERT OR IGNORE index_configuration ("
+                  "INSERT OR IGNORE INTO field_index ("
                       + "index_id, "
                       + "index_value, "
                       + "document_id ) VALUES(?, ?, ?)",
@@ -105,24 +106,35 @@ final class SQLiteIndexManager implements IndexManager {
   }
 
   @Override
-  public void enableIndex(ResourcePath collectionPath,  IndexDefinition index) {
+  public void enableIndex(ResourcePath collectionPath, IndexDefinition index) {
+    int currentMax =
+        db.query("SELECT MAX(index_id) FROM index_configuration")
+            .firstValue(
+                new Function<Cursor, Integer>() {
+                  @javax.annotation.Nullable
+                  @Override
+                  public Integer apply(@javax.annotation.Nullable Cursor input) {
+                    return input.isNull(0) ? 0 : input.getInt(0);
+                  }
+                });
     db.execute(
-        "INSERT OR IGNORE index_configuration ("
+        "INSERT OR IGNORE INTO index_configuration ("
             + "uid, "
             + "parent_path, "
             + "field_paths, " // field path, direction pairs
-            + "index_id) VALUES(?, ?, ?, (SELECT MAX(index_id) + 1 FROM index_configuration)",
+            + "index_id) VALUES(?, ?, ?, ?)",
         user.getUid(),
         collectionPath.canonicalString(),
-        encodeFilterPath(index));
+        encodeFilterPath(index),
+        currentMax);
   }
 
-  private byte[] encodeFilterPath( IndexDefinition index) {
+  private byte[] encodeFilterPath(IndexDefinition index) {
     OrderedCodeWriter orderedCode = new OrderedCodeWriter();
     for (IndexComponent component : index) {
       orderedCode.writeUtf8Ascending(component.fieldPath.canonicalString());
       orderedCode.writeUnsignedLongAscending(
-          component.direction.equals(OrderBy.Direction.ASCENDING) ? 0 : 1);
+          component.getType().equals(IndexComponent.IndexType.ASC) ? 0 : 1);
     }
     return orderedCode.encodedBytes();
   }
@@ -131,12 +143,12 @@ final class SQLiteIndexManager implements IndexManager {
     IndexDefinition components = new IndexDefinition();
     OrderedCodeReader orderedCodeReader = new OrderedCodeReader(bytes);
     while (orderedCodeReader.hasRemainingBytes()) {
-      long direction = orderedCodeReader.readUnsignedLongAscending();
       String fieldPath = orderedCodeReader.readUtf8Ascending();
+      long direction = orderedCodeReader.readUnsignedLongAscending();
       components.add(
           new IndexComponent(
               FieldPath.fromServerFormat(fieldPath),
-              direction == 0 ? OrderBy.Direction.ASCENDING : OrderBy.Direction.DESCENDING));
+              direction == 0 ? IndexComponent.IndexType.ASC : IndexComponent.IndexType.DESC));
     }
     return components;
   }
@@ -144,16 +156,17 @@ final class SQLiteIndexManager implements IndexManager {
   @Override
   @Nullable
   public Iterable<DocumentKey> getDocumentsMatchingQuery(
-      ResourcePath parentPath,  IndexDefinition index,  List<Value> values) {
+      ResourcePath parentPath, IndexDefinition index, List<Value> values) {
 
-     Integer indexId= db.query(
-            "SELECT index_id FROM index_configuration WHERE parent_path = ? AND field_paths = ?")
+    Integer indexId =
+        db.query(
+                "SELECT index_id FROM index_configuration WHERE parent_path = ? AND field_paths = ?")
             .binding(parentPath.canonicalString(), encodeFilterPath(index))
             .firstValue(row -> row.getInt(0));
 
     if (indexId == null) return null;
 
-// Could we do a join here and return the documents?
+    // Could we do a join here and return the documents?
     ArrayList<DocumentKey> documents = new ArrayList<>();
     db.query("SELECT document_id from field_index WHERE index_id = ? AND index_value = ?")
         .binding(indexId, encodeValues(index, values))
@@ -161,11 +174,11 @@ final class SQLiteIndexManager implements IndexManager {
     return documents;
   }
 
-  private byte[] encodeValues(IndexDefinition index,List<Value> values) {
+  private byte[] encodeValues(IndexDefinition index, List<Value> values) {
     IndexByteEncoder indexByteEncoder = new IndexByteEncoder();
     for (int i = 0; i < index.size(); ++i) {
       FirestoreIndexValueWriter.INSTANCE.writeIndexValue(
-          values.get(i), indexByteEncoder.forDirection(index.get(i).direction));
+          values.get(i), indexByteEncoder.forDirection(index.get(i).type));
     }
     return indexByteEncoder.getEncodedBytes();
   }
