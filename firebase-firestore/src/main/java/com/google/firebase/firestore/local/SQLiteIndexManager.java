@@ -42,7 +42,7 @@ final class SQLiteIndexManager implements IndexManager {
       new MemoryIndexManager.MemoryCollectionParentIndex();
 
   private final SQLitePersistence db;
-  private User user;
+  private final User user;
 
   SQLiteIndexManager(SQLitePersistence persistence, User user) {
     db = persistence;
@@ -84,7 +84,7 @@ final class SQLiteIndexManager implements IndexManager {
         .forEach(
             row -> {
               int indexId = row.getInt(0);
-              List<IndexComponent> components = decodeFilterPath(row.getBlob(1));
+              IndexDefinition components = decodeFilterPath(row.getBlob(1));
 
               List<Value> values = new ArrayList<>();
               for (IndexComponent component : components) {
@@ -105,7 +105,7 @@ final class SQLiteIndexManager implements IndexManager {
   }
 
   @Override
-  public void enableIndex(ResourcePath collectionPath, List<IndexComponent> filters) {
+  public void enableIndex(ResourcePath collectionPath,  IndexDefinition index) {
     db.execute(
         "INSERT OR IGNORE index_configuration ("
             + "uid, "
@@ -114,21 +114,12 @@ final class SQLiteIndexManager implements IndexManager {
             + "index_id) VALUES(?, ?, ?, (SELECT MAX(index_id) + 1 FROM index_configuration)",
         user.getUid(),
         collectionPath.canonicalString(),
-        encodeFilterPath(filters));
+        encodeFilterPath(index));
   }
 
-  @Override
-  @Nullable
-  public Integer getIndexId(ResourcePath collectionPath, List<IndexComponent> filters) {
-    return db.query(
-            "SELECT index_id FROM index_configuration WHERE parent_path = ? AND field_paths = ?")
-        .binding(collectionPath.canonicalString(), encodeFilterPath(filters))
-        .firstValue(row -> row.getInt(0));
-  }
-
-  private byte[] encodeFilterPath(List<IndexComponent> path) {
+  private byte[] encodeFilterPath( IndexDefinition index) {
     OrderedCodeWriter orderedCode = new OrderedCodeWriter();
-    for (IndexComponent component : path) {
+    for (IndexComponent component : index) {
       orderedCode.writeUtf8Ascending(component.fieldPath.canonicalString());
       orderedCode.writeUnsignedLongAscending(
           component.direction.equals(OrderBy.Direction.ASCENDING) ? 0 : 1);
@@ -136,8 +127,8 @@ final class SQLiteIndexManager implements IndexManager {
     return orderedCode.encodedBytes();
   }
 
-  private List<IndexComponent> decodeFilterPath(byte[] bytes) {
-    List<IndexComponent> components = new ArrayList<>();
+  private IndexDefinition decodeFilterPath(byte[] bytes) {
+    IndexDefinition components = new IndexDefinition();
     OrderedCodeReader orderedCodeReader = new OrderedCodeReader(bytes);
     while (orderedCodeReader.hasRemainingBytes()) {
       long direction = orderedCodeReader.readUnsignedLongAscending();
@@ -151,21 +142,30 @@ final class SQLiteIndexManager implements IndexManager {
   }
 
   @Override
+  @Nullable
   public Iterable<DocumentKey> getDocumentsMatchingConstraints(
-      ResourcePath parentPath, List<IndexComponent> filters, int indexId, List<Value> values) {
+      ResourcePath parentPath,  IndexDefinition index,  List<Value> values) {
 
+     Integer indexId= db.query(
+            "SELECT index_id FROM index_configuration WHERE parent_path = ? AND field_paths = ?")
+            .binding(parentPath.canonicalString(), encodeFilterPath(index))
+            .firstValue(row -> row.getInt(0));
+
+    if (indexId == null) return null;
+
+// Could we do a join here and return the documents?
     ArrayList<DocumentKey> documents = new ArrayList<>();
     db.query("SELECT document_id from field_index WHERE index_id = ? AND index_value = ?")
-        .binding(indexId, encodeValues(filters, values))
+        .binding(indexId, encodeValues(index, values))
         .forEach(row -> documents.add(DocumentKey.fromPath(parentPath.append(row.getString(0)))));
     return documents;
   }
 
-  private byte[] encodeValues(List<IndexComponent> filters, List<Value> values) {
+  private byte[] encodeValues(IndexDefinition index,List<Value> values) {
     IndexByteEncoder indexByteEncoder = new IndexByteEncoder();
-    for (int i = 0; i < filters.size(); ++i) {
+    for (int i = 0; i < index.size(); ++i) {
       FirestoreIndexValueWriter.INSTANCE.writeIndexValue(
-          values.get(i), indexByteEncoder.forDirection(filters.get(i).direction));
+          values.get(i), indexByteEncoder.forDirection(index.get(i).direction));
     }
     return indexByteEncoder.getEncodedBytes();
   }

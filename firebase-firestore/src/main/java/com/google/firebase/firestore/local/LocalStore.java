@@ -105,6 +105,7 @@ public final class LocalStore implements BundleCallback {
 
   /** Manages our in-memory or durable persistence. */
   private final Persistence persistence;
+  private IndexManager indexManager;
 
   /** The set of all mutations that have been sent but not yet been applied to the backend. */
   private MutationQueue mutationQueue;
@@ -144,9 +145,10 @@ public final class LocalStore implements BundleCallback {
     bundleCache = persistence.getBundleCache();
     targetIdGenerator = TargetIdGenerator.forTargetCache(targetCache.getHighestTargetId());
     mutationQueue = persistence.getMutationQueue(initialUser);
+    indexManager = persistence.getIndexManager(initialUser);
     remoteDocuments = persistence.getRemoteDocumentCache();
     localDocuments =
-        new LocalDocumentsView(remoteDocuments, mutationQueue, persistence.getIndexManager());
+        new LocalDocumentsView(remoteDocuments, mutationQueue, indexManager);
 
     this.queryEngine = queryEngine;
     queryEngine.setLocalDocumentsView(localDocuments);
@@ -177,13 +179,14 @@ public final class LocalStore implements BundleCallback {
     List<MutationBatch> oldBatches = mutationQueue.getAllMutationBatches();
 
     mutationQueue = persistence.getMutationQueue(user);
+    indexManager=persistence.getIndexManager(user);
     startMutationQueue();
 
     List<MutationBatch> newBatches = mutationQueue.getAllMutationBatches();
 
     // Recreate our LocalDocumentsView using the new MutationQueue.
     localDocuments =
-        new LocalDocumentsView(remoteDocuments, mutationQueue, persistence.getIndexManager());
+        new LocalDocumentsView(remoteDocuments, mutationQueue,indexManager);
     queryEngine.setLocalDocumentsView(localDocuments);
 
     // Union the old/new changed keys.
@@ -697,6 +700,12 @@ public final class LocalStore implements BundleCallback {
   public @Nullable NamedQuery getNamedQuery(String queryName) {
     return persistence.runTransaction(
         "Get named query", () -> bundleCache.getNamedQuery(queryName));
+  }
+
+  public void updateIndexEntries(ImmutableSortedMap<DocumentKey, Document> changes) {
+    for (Entry<DocumentKey, Document> entry: changes) {
+      indexManager.addDocument(entry.getValue());
+    }
   }
 
   /** Mutable state for the transaction in allocateQuery. */

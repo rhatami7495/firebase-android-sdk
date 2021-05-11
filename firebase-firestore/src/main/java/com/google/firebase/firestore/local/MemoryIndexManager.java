@@ -42,22 +42,20 @@ class MemoryIndexManager implements IndexManager {
   }
 
   @Override
-  public void addDocument(Document document) {}
+  public void addDocument(Document document) {
 
-  @Override
-  public void enableIndex(ResourcePath collectionPath, List<IndexComponent> filters) {}
-
-  @Nullable
-  @Override
-  public Integer getIndexId(ResourcePath collectionPath, List<IndexComponent> filters) {
-    return null;
   }
 
   @Override
-  public Iterable<DocumentKey> getDocumentsMatchingConstraints(
-      ResourcePath parentPath, List<IndexComponent> filters, int indexId, List<Value> values) {
+  public void enableIndex(ResourcePath collectionPath, IndexDefinition index) {
+
+  }
+
+  @Override
+  public Iterable<DocumentKey> getDocumentsMatchingConstraints(ResourcePath parentPath, IndexDefinition index, List<Value> values) {
     return null;
   }
+
 
   /**
    * Internal implementation of the collection-parent index. Also used for in-memory caching by

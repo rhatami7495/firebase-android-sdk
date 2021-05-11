@@ -19,6 +19,7 @@ import static com.google.firebase.firestore.util.Assert.hardAssert;
 import androidx.annotation.Nullable;
 import com.google.firebase.firestore.core.Filter.Operator;
 import com.google.firebase.firestore.core.OrderBy.Direction;
+import com.google.firebase.firestore.local.IndexManager;
 import com.google.firebase.firestore.model.Document;
 import com.google.firebase.firestore.model.DocumentKey;
 import com.google.firebase.firestore.model.FieldPath;
@@ -111,6 +112,15 @@ public final class Query {
         null);
   }
 
+  public List<List<IndexManager.IndexComponent>> getIndexComponents() {
+    return getIndexComponents(getFilters(), getExplicitOrderBy());
+  }
+
+  private List<List<IndexManager.IndexComponent>> getIndexComponents(List<Filter> filters, List<OrderBy> explicitOrderBy) {
+    List<List<IndexManager.IndexComponent>> indexComponents = new ArrayList<>();
+
+    return indexComponents;
+  }
   /** The base path of the query. */
   public ResourcePath getPath() {
     return path;

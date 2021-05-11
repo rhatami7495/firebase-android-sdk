@@ -21,6 +21,8 @@ import com.google.firebase.firestore.model.DocumentKey;
 import com.google.firebase.firestore.model.FieldPath;
 import com.google.firebase.firestore.model.ResourcePath;
 import com.google.firestore.v1.Value;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -40,6 +42,8 @@ public interface IndexManager {
     OrderBy.Direction direction;
   }
 
+  class IndexDefinition extends ArrayList<IndexComponent>{}
+
   /**
    * Creates an index entry mapping the collectionId (last segment of the path) to the parent path
    * (either the containing document location or the empty path for root-level collections). Index
@@ -58,11 +62,8 @@ public interface IndexManager {
 
   void addDocument(Document document);
 
-  void enableIndex(ResourcePath collectionPath, List<IndexComponent> filters);
-
-  @Nullable
-  public Integer getIndexId(ResourcePath collectionPath, List<IndexComponent> filters);
+  void enableIndex(ResourcePath collectionPath,  IndexDefinition index);
 
   Iterable<DocumentKey> getDocumentsMatchingConstraints(
-      ResourcePath parentPath, List<IndexComponent> filters, int indexId, List<Value> values);
+      ResourcePath parentPath,  IndexDefinition index, List<Value> values);
 }

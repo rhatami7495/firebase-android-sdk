@@ -14,8 +14,11 @@
 
 package com.google.firebase.firestore.core;
 
+import com.google.firebase.firestore.local.IndexManager;
 import com.google.firebase.firestore.model.Document;
 import com.google.firebase.firestore.model.FieldPath;
+
+import java.util.List;
 
 /** Interface used for all query filters. */
 public abstract class Filter {
@@ -51,4 +54,6 @@ public abstract class Filter {
 
   /** A unique ID identifying the filter; used when serializing queries. */
   public abstract String getCanonicalId();
+
+  public abstract List<IndexManager.IndexComponent> getIndexComponent();
 }

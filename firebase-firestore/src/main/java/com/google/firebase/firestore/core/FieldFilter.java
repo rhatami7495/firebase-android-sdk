@@ -16,12 +16,15 @@ package com.google.firebase.firestore.core;
 
 import static com.google.firebase.firestore.util.Assert.hardAssert;
 
+import com.google.firebase.firestore.local.IndexManager;
 import com.google.firebase.firestore.model.Document;
 import com.google.firebase.firestore.model.FieldPath;
 import com.google.firebase.firestore.model.Values;
 import com.google.firebase.firestore.util.Assert;
 import com.google.firestore.v1.Value;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /** Represents a filter to be applied to query. */
 public class FieldFilter extends Filter {
@@ -133,6 +136,26 @@ public class FieldFilter extends Filter {
     // TODO: Technically, this won't be unique if two values have the same description,
     // such as the int 3 and the string "3". So we should add the types in here somehow, too.
     return getField().canonicalString() + getOperator().toString() + Values.canonicalId(getValue());
+  }
+
+  @Override
+  public List<IndexManager.IndexComponent> getIndexComponent() {
+    switch (operator) {
+      case LESS_THAN:
+        return Collections.singletonList(new IndexManager.IndexComponent(field, ));
+      case LESS_THAN_OR_EQUAL:
+        return comp <= 0;
+      case EQUAL:
+        return comp == 0;
+      case NOT_EQUAL:
+        return comp != 0;
+      case GREATER_THAN:
+        return comp > 0;
+      case GREATER_THAN_OR_EQUAL:
+        return comp >= 0;
+      default:
+        throw Assert.fail("Unknown FieldFilter operator: %s", operator);
+    };
   }
 
   @Override
