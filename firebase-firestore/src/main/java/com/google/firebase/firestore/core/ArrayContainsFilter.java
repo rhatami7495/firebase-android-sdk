@@ -28,6 +28,6 @@ public class ArrayContainsFilter extends FieldFilter {
   @Override
   public boolean matches(Document doc) {
     Value other = doc.getField(getField());
-    return Values.isArray(other) && Values.contains(other.getArrayValue(), getValue());
+    return Values.isArray(other) && Values.contains(other.getArrayValue(), getLowerBound());
   }
 }

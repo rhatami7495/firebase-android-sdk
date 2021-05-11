@@ -31,6 +31,6 @@ public class InFilter extends FieldFilter {
   @Override
   public boolean matches(Document doc) {
     Value other = doc.getField(getField());
-    return other != null && Values.contains(getValue().getArrayValue(), other);
+    return other != null && Values.contains(getLowerBound().getArrayValue(), other);
   }
 }

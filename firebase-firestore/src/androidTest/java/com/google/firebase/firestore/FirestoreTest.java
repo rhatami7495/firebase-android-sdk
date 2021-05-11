@@ -72,14 +72,24 @@ public class FirestoreTest {
   }
 
   @Test
-  public void testCanUseIndex() {
+  public void testCanUseIndexForEquality() {
     CollectionReference collectionReference = testCollection("rooms");
     collectionReference.getFirestore().enableIndex(collectionReference, "foo", Direction.ASCENDING);
-    collectionReference.document("matches").set(map("foo", "bar"));
+    collectionReference.add(map("foo", "bar"));
     collectionReference.add(map("foo", "baz"));
-    collectionReference.add(map("a", "b"));
     QuerySnapshot snap = waitFor(collectionReference.whereEqualTo("foo", "bar").get());
     assertEquals(1, snap.size());
+  }
+
+  @Test
+  public void testCanUseIndexForInequality() {
+    CollectionReference collectionReference = testCollection("rooms");
+    collectionReference.getFirestore().enableIndex(collectionReference, "foo", Direction.ASCENDING);
+    collectionReference.add(map("foo", 1));
+    collectionReference.add(map("foo", 2));
+    collectionReference.add(map("foo", 3));
+    QuerySnapshot snap = waitFor(collectionReference.whereGreaterThan("foo", 1).get());
+    assertEquals(2, snap.size());
   }
 
   @Test

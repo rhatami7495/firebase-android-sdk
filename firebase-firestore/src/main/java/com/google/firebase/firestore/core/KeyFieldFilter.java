@@ -29,7 +29,7 @@ public class KeyFieldFilter extends FieldFilter {
   KeyFieldFilter(FieldPath field, Operator operator, Value value) {
     super(field, operator, value);
     hardAssert(Values.isReferenceValue(value), "KeyFieldFilter expects a ReferenceValue");
-    key = DocumentKey.fromName(getValue().getReferenceValue());
+    key = DocumentKey.fromName(getLowerBound().getReferenceValue());
   }
 
   @Override

@@ -194,7 +194,7 @@ class LocalDocumentsView {
     for (IndexManager.IndexDefinition definition : indexComponents) {
       Iterable<DocumentKey> documentsMatchingQuery =
           indexManager.getDocumentsMatchingQuery(
-              query.getPath(), definition, query.getFilterValues());
+              query.getPath(), definition, query.getLowerBound(), query.isLowerInclusive(), query.getUpperBound(), query.isUpperInclusive());
 
       if (documentsMatchingQuery != null) {
         remoteDocuments = remoteDocumentCache.getAll(documentsMatchingQuery);

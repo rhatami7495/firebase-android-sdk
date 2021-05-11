@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.firebase.firestore.local;
+package com.google.firebase.firestore.index;
 
 import static java.lang.Character.MAX_SURROGATE;
 import static java.lang.Character.MIN_SURROGATE;
 
-import com.google.cloud.datastore.core.number.IndexNumberEncoder;
 import com.google.protobuf.ByteString;
 import java.math.RoundingMode;
 import java.util.Arrays;
@@ -241,30 +240,6 @@ public class OrderedCodeWriter {
     long v = Double.doubleToLongBits(val);
     v ^= (v < 0) ? DOUBLE_ALL_BITS : DOUBLE_SIGN_MASK;
     writeUnsignedLongDescending(v);
-  }
-
-  /** Write a signed long ascending such that it is comparable with doubles and longs together. */
-  public void writeNumberAscending(long value) {
-    ensureAvailable(11); // Maximum possible size
-    position += IndexNumberEncoder.encodeLong(false, value, buffer, position);
-  }
-
-  /** Writes a double ascending such that it is comparable with doubles and longs together. */
-  public void writeNumberAscending(double value) {
-    ensureAvailable(10); // Maximum possible size
-    position += IndexNumberEncoder.encodeDouble(false, value, buffer, position);
-  }
-
-  /** Writes a signed long descending such that it is comparable with doubles and longs together. */
-  public void writeNumberDescending(long value) {
-    ensureAvailable(11); // Maximum possible size
-    position += IndexNumberEncoder.encodeLong(true, value, buffer, position);
-  }
-
-  /** Writes a double descending such that it is comparable with doubles and longs together. */
-  public void writeNumberDescending(double value) {
-    ensureAvailable(10); // Maximum possible size
-    position += IndexNumberEncoder.encodeDouble(true, value, buffer, position);
   }
 
   /** Resets the buffer such that it is the same as when it was newly constructed. */

@@ -26,10 +26,4 @@ public abstract class DirectionalIndexByteEncoder {
   public abstract void writeLong(long val);
 
   public abstract void writeDouble(double val);
-
-  /** Writes a double such that it is comparable with doubles and longs together. */
-  public abstract void writeNumber(double comparableNumberAsDouble);
-
-  /** Writes a long such that it is comparable with doubles and longs together. */
-  public abstract void writeNumber(long comparableNumberAsLong);
 }

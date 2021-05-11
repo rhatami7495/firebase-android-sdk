@@ -35,7 +35,7 @@ public class ArrayContainsAnyFilter extends FieldFilter {
       return false;
     }
     for (Value val : other.getArrayValue().getValuesList()) {
-      if (Values.contains(getValue().getArrayValue(), val)) {
+      if (Values.contains(getLowerBound().getArrayValue(), val)) {
         return true;
       }
     }

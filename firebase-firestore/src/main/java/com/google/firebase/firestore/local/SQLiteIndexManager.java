@@ -19,6 +19,8 @@ import static com.google.firebase.firestore.util.Assert.hardAssert;
 import android.database.Cursor;
 import androidx.annotation.Nullable;
 import com.google.firebase.firestore.auth.User;
+import com.google.firebase.firestore.index.OrderedCodeReader;
+import com.google.firebase.firestore.index.OrderedCodeWriter;
 import com.google.firebase.firestore.model.Document;
 import com.google.firebase.firestore.model.DocumentKey;
 import com.google.firebase.firestore.model.FieldPath;
@@ -156,7 +158,7 @@ final class SQLiteIndexManager implements IndexManager {
   @Override
   @Nullable
   public Iterable<DocumentKey> getDocumentsMatchingQuery(
-      ResourcePath parentPath, IndexDefinition index, List<Value> values) {
+          ResourcePath parentPath, IndexDefinition index, @Nullable List<Value> lowerBound, boolean lowerInclusive, @Nullable List<Value> upperBound, boolean upperInclusive) {
 
     Integer indexId =
         db.query(
@@ -168,9 +170,20 @@ final class SQLiteIndexManager implements IndexManager {
 
     // Could we do a join here and return the documents?
     ArrayList<DocumentKey> documents = new ArrayList<>();
-    db.query("SELECT document_id from field_index WHERE index_id = ? AND index_value = ?")
-        .binding(indexId, encodeValues(index, values))
-        .forEach(row -> documents.add(DocumentKey.fromPath(parentPath.append(row.getString(0)))));
+
+    if (lowerBound != null && upperBound != null) {
+      db.query("SELECT document_id from field_index WHERE index_id = ? AND index_value " + (lowerInclusive ? ">=" :">") +" ? && index_value " + (upperInclusive ? ">=" :"=") + " ?")
+              .binding(indexId, encodeValues(index, lowerBound), encodeValues(index, upperBound))
+              .forEach(row -> documents.add(DocumentKey.fromPath(parentPath.append(row.getString(0)))));
+    } else if (lowerBound != null){
+      db.query("SELECT document_id from field_index WHERE index_id = ? AND index_value " + (lowerInclusive ? ">=" :">") +"  ?")
+              .binding(indexId, encodeValues(index, lowerBound))
+              .forEach(row -> documents.add(DocumentKey.fromPath(parentPath.append(row.getString(0)))));
+    } else {
+      db.query("SELECT document_id from field_index WHERE index_id = ? AND index_value " + (upperInclusive ? ">=" :">") + "  ?")
+              .binding(indexId, encodeValues(index, upperBound))
+              .forEach(row -> documents.add(DocumentKey.fromPath(parentPath.append(row.getString(0)))));
+    }
     return documents;
   }
 

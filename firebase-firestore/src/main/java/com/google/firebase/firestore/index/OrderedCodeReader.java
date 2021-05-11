@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.firebase.firestore.local;
+package com.google.firebase.firestore.index;
 
-import static com.google.firebase.firestore.local.OrderedCodeWriter.ESCAPE1;
-import static com.google.firebase.firestore.local.OrderedCodeWriter.ESCAPE2;
-import static com.google.firebase.firestore.local.OrderedCodeWriter.FF_BYTE;
-import static com.google.firebase.firestore.local.OrderedCodeWriter.NULL_BYTE;
-import static com.google.firebase.firestore.local.OrderedCodeWriter.SEPARATOR;
+import static com.google.firebase.firestore.index.OrderedCodeWriter.ESCAPE1;
+import static com.google.firebase.firestore.index.OrderedCodeWriter.ESCAPE2;
+import static com.google.firebase.firestore.index.OrderedCodeWriter.FF_BYTE;
+import static com.google.firebase.firestore.index.OrderedCodeWriter.NULL_BYTE;
+import static com.google.firebase.firestore.index.OrderedCodeWriter.SEPARATOR;
 import static java.lang.Character.MAX_SURROGATE;
 import static java.lang.Character.MIN_HIGH_SURROGATE;
 import static java.lang.Character.MIN_LOW_SURROGATE;

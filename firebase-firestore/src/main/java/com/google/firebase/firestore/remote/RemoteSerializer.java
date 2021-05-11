@@ -684,13 +684,13 @@ public final class RemoteSerializer {
         || filter.getOperator() == Filter.Operator.NOT_EQUAL) {
       UnaryFilter.Builder unaryProto = UnaryFilter.newBuilder();
       unaryProto.setField(encodeFieldPath(filter.getField()));
-      if (Values.isNanValue(filter.getValue())) {
+      if (Values.isNanValue(filter.getLowerBound())) {
         unaryProto.setOp(
             filter.getOperator() == Filter.Operator.EQUAL
                 ? UnaryFilter.Operator.IS_NAN
                 : UnaryFilter.Operator.IS_NOT_NAN);
         return StructuredQuery.Filter.newBuilder().setUnaryFilter(unaryProto).build();
-      } else if (Values.isNullValue(filter.getValue())) {
+      } else if (Values.isNullValue(filter.getLowerBound())) {
         unaryProto.setOp(
             filter.getOperator() == Filter.Operator.EQUAL
                 ? UnaryFilter.Operator.IS_NULL
@@ -701,7 +701,7 @@ public final class RemoteSerializer {
     StructuredQuery.FieldFilter.Builder proto = StructuredQuery.FieldFilter.newBuilder();
     proto.setField(encodeFieldPath(filter.getField()));
     proto.setOp(encodeFieldFilterOperator(filter.getOperator()));
-    proto.setValue(filter.getValue());
+    proto.setValue(filter.getLowerBound());
     return StructuredQuery.Filter.newBuilder().setFieldFilter(proto).build();
   }
 

@@ -14,6 +14,7 @@
 
 package com.google.firebase.firestore.local;
 
+import com.google.firebase.firestore.index.OrderedCodeWriter;
 import com.google.protobuf.ByteString;
 
 public class IndexByteEncoder {
@@ -47,16 +48,6 @@ public class IndexByteEncoder {
     public void writeDouble(double val) {
       orderedCode.writeDoubleAscending(val);
     }
-
-    @Override
-    public void writeNumber(double comparableNumberAsDouble) {
-      orderedCode.writeNumberAscending(comparableNumberAsDouble);
-    }
-
-    @Override
-    public void writeNumber(long comparableNumberAsLong) {
-      orderedCode.writeNumberAscending(comparableNumberAsLong);
-    }
   }
 
   private class DescendingEncoder extends DirectionalIndexByteEncoder {
@@ -79,16 +70,6 @@ public class IndexByteEncoder {
     @Override
     public void writeDouble(double val) {
       orderedCode.writeDoubleDescending(val);
-    }
-
-    @Override
-    public void writeNumber(double comparableNumberAsDouble) {
-      orderedCode.writeNumberDescending(comparableNumberAsDouble);
-    }
-
-    @Override
-    public void writeNumber(long comparableNumberAsLong) {
-      orderedCode.writeNumberDescending(comparableNumberAsLong);
     }
   }
 

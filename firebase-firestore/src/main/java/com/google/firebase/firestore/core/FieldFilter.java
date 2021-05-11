@@ -25,6 +25,8 @@ import com.google.firebase.firestore.util.Assert;
 import com.google.firestore.v1.Value;
 import java.util.Arrays;
 
+import javax.annotation.Nullable;
+
 /** Represents a filter to be applied to query. */
 public class FieldFilter extends Filter {
   private final Operator operator;
@@ -48,12 +50,55 @@ public class FieldFilter extends Filter {
   }
 
   @Override
+  public boolean isLowerInclusive() {
+    if (operator.equals(Operator.LESS_THAN_OR_EQUAL)) {
+      return true;
+    } else  if (operator.equals(Operator.EQUAL)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public boolean isUpperInclusive() {
+   if (operator.equals(Operator.GREATER_THAN_OR_EQUAL)) {
+      return true;
+    } else  if (operator.equals(Operator.EQUAL)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @Override
   public FieldPath getField() {
     return field;
   }
 
-  public Value getValue() {
-    return value;
+  public @Nullable Value getLowerBound() {
+    if (operator.equals(Operator.GREATER_THAN)) {
+      return value;
+    } else  if (operator.equals(Operator.GREATER_THAN_OR_EQUAL)) {
+      return value;
+    } else  if (operator.equals(Operator.EQUAL)) {
+      return value;
+    } else {
+      return null;
+    }
+  }
+
+
+  public @Nullable Value getUpperBound() {
+    if (operator.equals(Operator.LESS_THAN)) {
+      return value;
+    } else  if (operator.equals(Operator.LESS_THAN_OR_EQUAL)) {
+      return value;
+    } else  if (operator.equals(Operator.EQUAL)) {
+      return value;
+    } else {
+      return null;
+    }
   }
 
   /**
@@ -134,7 +179,7 @@ public class FieldFilter extends Filter {
   public String getCanonicalId() {
     // TODO: Technically, this won't be unique if two values have the same description,
     // such as the int 3 and the string "3". So we should add the types in here somehow, too.
-    return getField().canonicalString() + getOperator().toString() + Values.canonicalId(getValue());
+    return getField().canonicalString() + getOperator().toString() + Values.canonicalId(getLowerBound());
   }
 
   @Override

@@ -131,17 +131,51 @@ public final class Query {
     return components;
   }
 
-  public List<Value> getFilterValues() {
+  public @Nullable List<Value> getLowerBound() {
     List<Value> unspecifiedComponents = new ArrayList<>();
     for (Filter filter : filters) {
-      unspecifiedComponents.add(filter.getValue());
+      Value lowerBound = filter.getLowerBound();
+      if (lowerBound==null)return null;
+      unspecifiedComponents.add(lowerBound);
     }
     return unspecifiedComponents;
   }
 
+  public boolean isLowerInclusive() {
+    List<Value> unspecifiedComponents = new ArrayList<>();
+    for (Filter filter : filters) {
+      boolean inclusive = filter.isLowerInclusive();
+      if (!inclusive) return false;
+    }
+    return true;
+  }
+
+
+  public @Nullable List<Value> getUpperBound() {
+    List<Value> unspecifiedComponents = new ArrayList<>();
+    for (Filter filter : filters) {
+      Value upperBound = filter.getUpperBound();
+      if (upperBound==null)return null;
+      unspecifiedComponents.add(upperBound);
+    }
+    return unspecifiedComponents;
+  }
+
+  public boolean isUpperInclusive() {
+    for (Filter filter : filters) {
+      boolean inclusive = filter.isUpperInclusive();
+      if (!inclusive) return false;
+    }
+    return true;
+  }
+
+
   private void expandIndexComponents(
       List<IndexDefinition> existing, List<IndexComponent> unspecifiedComponents) {
     if (!unspecifiedComponents.isEmpty()) {
+      if (existing.isEmpty()) {
+      existing.add(new IndexDefinition());
+    }
       IndexComponent first = unspecifiedComponents.get(0);
       if (!first.getType().equals(IndexComponent.IndexType.ANY)) {
         for (IndexDefinition indexDefinition : existing) {
@@ -149,10 +183,6 @@ public final class Query {
         }
       } else {
         int originalSize = existing.size();
-        if (originalSize == 0) {
-          existing.add(new IndexDefinition());
-          originalSize = 1;
-        }
 
         for (int i = 0; i < originalSize; ++i) {
           existing

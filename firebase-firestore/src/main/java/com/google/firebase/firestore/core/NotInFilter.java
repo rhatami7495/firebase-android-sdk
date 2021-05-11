@@ -30,10 +30,10 @@ public class NotInFilter extends FieldFilter {
 
   @Override
   public boolean matches(Document doc) {
-    if (Values.contains(getValue().getArrayValue(), Values.NULL_VALUE)) {
+    if (Values.contains(getLowerBound().getArrayValue(), Values.NULL_VALUE)) {
       return false;
     }
     Value other = doc.getField(getField());
-    return other != null && !Values.contains(getValue().getArrayValue(), other);
+    return other != null && !Values.contains(getLowerBound().getArrayValue(), other);
   }
 }

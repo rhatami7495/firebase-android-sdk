@@ -165,14 +165,14 @@ public class IndexedQueryEngine implements QueryEngine {
   private static double estimateFilterSelectivity(Filter filter) {
     hardAssert(filter instanceof FieldFilter, "Filter type expected to be FieldFilter");
     FieldFilter fieldFilter = (FieldFilter) filter;
-    Value filterValue = fieldFilter.getValue();
+    Value filterValue = fieldFilter.getLowerBound();
     if (Values.isNullValue(filterValue) || Values.isNanValue(filterValue)) {
       return HIGH_SELECTIVITY;
     } else {
       double operatorSelectivity =
           fieldFilter.getOperator().equals(Operator.EQUAL) ? HIGH_SELECTIVITY : LOW_SELECTIVITY;
       double typeSelectivity =
-          lowCardinalityTypes.contains(fieldFilter.getValue().getValueTypeCase())
+          lowCardinalityTypes.contains(fieldFilter.getLowerBound().getValueTypeCase())
               ? LOW_SELECTIVITY
               : HIGH_SELECTIVITY;
 
@@ -223,7 +223,7 @@ public class IndexedQueryEngine implements QueryEngine {
     IndexRange.Builder indexRange = IndexRange.builder().setFieldPath(filter.getField());
     if (filter instanceof FieldFilter) {
       FieldFilter fieldFilter = (FieldFilter) filter;
-      Value filterValue = fieldFilter.getValue();
+      Value filterValue = fieldFilter.getLowerBound();
       switch (fieldFilter.getOperator()) {
         case EQUAL:
           indexRange.setStart(filterValue).setEnd(filterValue);
