@@ -52,7 +52,7 @@ class MemoryIndexManager implements IndexManager {
   }
 
   @Override
-  public Iterable<DocumentKey> getDocumentsMatchingConstraints(ResourcePath parentPath, IndexDefinition index, List<Value> values) {
+  public Iterable<DocumentKey> getDocumentsMatchingQuery(ResourcePath parentPath, IndexDefinition index, List<Value> values) {
     return null;
   }
 

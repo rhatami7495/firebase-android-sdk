@@ -20,11 +20,15 @@ import androidx.annotation.Nullable;
 import com.google.firebase.firestore.core.Filter.Operator;
 import com.google.firebase.firestore.core.OrderBy.Direction;
 import com.google.firebase.firestore.local.IndexManager;
+import com.google.firebase.firestore.local.IndexManager.IndexComponent;
+import com.google.firebase.firestore.local.IndexManager.IndexDefinition;
 import com.google.firebase.firestore.model.Document;
 import com.google.firebase.firestore.model.DocumentKey;
 import com.google.firebase.firestore.model.FieldPath;
 import com.google.firebase.firestore.model.ResourcePath;
 import com.google.firebase.firestore.util.Assert;
+import com.google.firestore.v1.Value;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,6 +40,8 @@ import java.util.List;
  * LocalStore, as well as be converted to a {@code Target} to query the RemoteStore results.
  */
 public final class Query {
+
+
 
   public enum LimitType {
     LIMIT_TO_FIRST,
@@ -112,14 +118,53 @@ public final class Query {
         null);
   }
 
-  public List<List<IndexManager.IndexComponent>> getIndexComponents() {
-    return getIndexComponents(getFilters(), getExplicitOrderBy());
+  public List<IndexDefinition> getIndexComponents() {
+    List<IndexComponent> unspecifiedComponents = new ArrayList<>();
+    for (Filter filter: filters){
+      unspecifiedComponents.add(filter.getIndexComponent());
+    }
+    for (OrderBy orderBy : getOrderBy()){
+      for (int i = 0; i < unspecifiedComponents.size(); ++i) {
+        if (unspecifiedComponents.get(i).getFieldPath().equals(orderBy.field)) {
+          unspecifiedComponents.set(i, orderBy.getIndexComponent());
+        }
+      }
+    }
+     List<IndexDefinition> components=new ArrayList<>();
+     expandIndexComponents(components,unspecifiedComponents);
+     return components;
   }
 
-  private List<List<IndexManager.IndexComponent>> getIndexComponents(List<Filter> filters, List<OrderBy> explicitOrderBy) {
-    List<List<IndexManager.IndexComponent>> indexComponents = new ArrayList<>();
+  public  List<Value> getFilterValues() {
+    List<Value> unspecifiedComponents = new ArrayList<>();
+    for (Filter filter: filters){
+      unspecifiedComponents.add(filter.getValue());
+    }
+    return unspecifiedComponents;
+  }
 
-    return indexComponents;
+  private void expandIndexComponents( List<IndexDefinition> existing,
+                                                    List<IndexComponent> unspecifiedComponents) {
+    if (!unspecifiedComponents.isEmpty()) {
+      IndexComponent first = unspecifiedComponents.get(0);
+      if (!first.getType().equals(IndexComponent.IndexType.ANY)) {
+        for (IndexDefinition indexDefinition:existing){
+          indexDefinition.add(first);
+        }
+      } else {
+        int originalSize = existing.size();
+        for (int i = 0; i < originalSize; ++i){
+          existing.get(i).add(new IndexComponent(first.getFieldPath(),  IndexComponent.IndexType.ASC));
+        }
+        for (int i = 0; i < originalSize; ++i){
+          IndexDefinition ascDefinition = new IndexDefinition();
+          ascDefinition.addAll(ascDefinition.subList(0, existing.size()-1));
+          ascDefinition.add(new IndexComponent(first.getFieldPath(),  IndexComponent.IndexType.DESC));
+          existing.add(ascDefinition);
+        }
+      }
+    }
+
   }
   /** The base path of the query. */
   public ResourcePath getPath() {

@@ -33,13 +33,36 @@ import java.util.List;
  */
 public interface IndexManager {
   class IndexComponent {
-    public IndexComponent(FieldPath fieldPath, OrderBy.Direction direction) {
+    public FieldPath getFieldPath() {
+      return fieldPath;
+    }
+
+    public void setFieldPath(FieldPath fieldPath) {
       this.fieldPath = fieldPath;
-      this.direction = direction;
+    }
+
+    public IndexType getType() {
+      return type;
+    }
+
+    public void setType(IndexType type) {
+      this.type = type;
+    }
+
+    public enum IndexType {
+      ASC,
+      DESC,
+      ANY,
+      ARRAY_CONTAINS
+    }
+
+    public IndexComponent(FieldPath fieldPath, IndexType type) {
+      this.fieldPath = fieldPath;
+      this.type = type;
     }
 
     FieldPath fieldPath;
-    OrderBy.Direction direction;
+    IndexType type;
   }
 
   class IndexDefinition extends ArrayList<IndexComponent>{}
@@ -64,6 +87,6 @@ public interface IndexManager {
 
   void enableIndex(ResourcePath collectionPath,  IndexDefinition index);
 
-  Iterable<DocumentKey> getDocumentsMatchingConstraints(
+  Iterable<DocumentKey> getDocumentsMatchingQuery(
       ResourcePath parentPath,  IndexDefinition index, List<Value> values);
 }

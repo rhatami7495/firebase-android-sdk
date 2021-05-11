@@ -75,7 +75,7 @@ public class OrderBy {
 
 
   public IndexManager.IndexComponent getIndexComponent() {
-    return new IndexManager.IndexComponent(field, direction);
+    return new IndexManager.IndexComponent(field, direction.equals(Direction.ASCENDING)? IndexManager.IndexComponent.IndexType.ASC: IndexManager.IndexComponent.IndexType.DESC);
   }
 
   @Override

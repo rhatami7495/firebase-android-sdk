@@ -143,7 +143,7 @@ final class SQLiteIndexManager implements IndexManager {
 
   @Override
   @Nullable
-  public Iterable<DocumentKey> getDocumentsMatchingConstraints(
+  public Iterable<DocumentKey> getDocumentsMatchingQuery(
       ResourcePath parentPath,  IndexDefinition index,  List<Value> values) {
 
      Integer indexId= db.query(
